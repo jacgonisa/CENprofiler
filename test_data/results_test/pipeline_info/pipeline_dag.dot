@@ -1,0 +1,115 @@
+digraph "pipeline_dag" {
+rankdir=TB;
+v0 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+v20 [label="READ_MODE_WITH_INDELS:CLASSIFY_MONOMERS"];
+v0 -> v20 [label="reference_monomers"];
+
+v1 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+v20 [label="READ_MODE_WITH_INDELS:CLASSIFY_MONOMERS"];
+v1 -> v20 [label="family_assignments"];
+
+v2 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+v10 [label="READ_MODE_WITH_INDELS:EXTRACT_READS_FROM_BAM"];
+v2 -> v10 [label="bam_file"];
+
+v3 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+v10 [label="READ_MODE_WITH_INDELS:EXTRACT_READS_FROM_BAM"];
+v3 -> v10 [label="bam_index"];
+
+v4 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+v5 [shape=point];
+v4 -> v5 [label="reference_genome"];
+
+v6 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+v7 [label="READ_MODE_WITH_INDELS:LOAD_GENOMIC_REGIONS"];
+v6 -> v7 [label="annotation_dir"];
+
+v7 [label="READ_MODE_WITH_INDELS:LOAD_GENOMIC_REGIONS"];
+v10 [label="READ_MODE_WITH_INDELS:EXTRACT_READS_FROM_BAM"];
+v7 -> v10 [label="regions"];
+
+v7 [label="READ_MODE_WITH_INDELS:LOAD_GENOMIC_REGIONS"];
+v8 [shape=point];
+v7 -> v8;
+
+v9 [shape=point,label="",fixedsize=true,width=0.1];
+v10 [label="READ_MODE_WITH_INDELS:EXTRACT_READS_FROM_BAM"];
+v9 -> v10 [label="sample_name"];
+
+v10 [label="READ_MODE_WITH_INDELS:EXTRACT_READS_FROM_BAM"];
+v13 [label="READ_MODE_WITH_INDELS:FASTAN"];
+v10 -> v13 [label="reads_fasta"];
+
+v10 [label="READ_MODE_WITH_INDELS:EXTRACT_READS_FROM_BAM"];
+v23 [label="READ_MODE_WITH_INDELS:READ_PLOTS"];
+v10 -> v23 [label="indel_catalog"];
+
+v10 [label="READ_MODE_WITH_INDELS:EXTRACT_READS_FROM_BAM"];
+v12 [shape=point];
+v10 -> v12 [label="extraction_stats"];
+
+v10 [label="READ_MODE_WITH_INDELS:EXTRACT_READS_FROM_BAM"];
+v11 [shape=point];
+v10 -> v11;
+
+v13 [label="READ_MODE_WITH_INDELS:FASTAN"];
+v15 [label="READ_MODE_WITH_INDELS:TANBED"];
+v13 -> v15;
+
+v13 [label="READ_MODE_WITH_INDELS:FASTAN"];
+v14 [shape=point];
+v13 -> v14;
+
+v15 [label="READ_MODE_WITH_INDELS:TANBED"];
+v18 [label="READ_MODE_WITH_INDELS:EXTRACT_MONOMERS"];
+v15 -> v18 [label="fastan_bed"];
+
+v15 [label="READ_MODE_WITH_INDELS:TANBED"];
+v16 [shape=point];
+v15 -> v16;
+
+v10 [label="READ_MODE_WITH_INDELS:EXTRACT_READS_FROM_BAM"];
+v18 [label="READ_MODE_WITH_INDELS:EXTRACT_MONOMERS"];
+v10 -> v18 [label="reads_fasta"];
+
+v17 [shape=point,label="",fixedsize=true,width=0.1];
+v18 [label="READ_MODE_WITH_INDELS:EXTRACT_MONOMERS"];
+v17 -> v18 [label="mode"];
+
+v18 [label="READ_MODE_WITH_INDELS:EXTRACT_MONOMERS"];
+v20 [label="READ_MODE_WITH_INDELS:CLASSIFY_MONOMERS"];
+v18 -> v20 [label="monomer_fasta"];
+
+v18 [label="READ_MODE_WITH_INDELS:EXTRACT_MONOMERS"];
+v20 [label="READ_MODE_WITH_INDELS:CLASSIFY_MONOMERS"];
+v18 -> v20;
+
+v18 [label="READ_MODE_WITH_INDELS:EXTRACT_MONOMERS"];
+v19 [shape=point];
+v18 -> v19;
+
+v20 [label="READ_MODE_WITH_INDELS:CLASSIFY_MONOMERS"];
+v23 [label="READ_MODE_WITH_INDELS:READ_PLOTS"];
+v20 -> v23 [label="classifications"];
+
+v20 [label="READ_MODE_WITH_INDELS:CLASSIFY_MONOMERS"];
+v22 [shape=point];
+v20 -> v22;
+
+v20 [label="READ_MODE_WITH_INDELS:CLASSIFY_MONOMERS"];
+v21 [shape=point];
+v20 -> v21;
+
+v18 [label="READ_MODE_WITH_INDELS:EXTRACT_MONOMERS"];
+v23 [label="READ_MODE_WITH_INDELS:READ_PLOTS"];
+v18 -> v23 [label="monomer_info"];
+
+v23 [label="READ_MODE_WITH_INDELS:READ_PLOTS"];
+v25 [shape=point];
+v23 -> v25 [label="plots"];
+
+v23 [label="READ_MODE_WITH_INDELS:READ_PLOTS"];
+v24 [shape=point];
+v23 -> v24;
+
+}

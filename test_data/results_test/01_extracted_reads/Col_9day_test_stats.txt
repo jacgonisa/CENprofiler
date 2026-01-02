@@ -1,0 +1,3 @@
+Reads extracted: 55
+Large indels found: 93
+Minimum indel size: 100bp

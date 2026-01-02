@@ -5,7 +5,8 @@ work/
 *.log
 
 # Test data and results
-test_data/
+test_data/*
+!test_data/results_test/
 results/
 
 # Python

@@ -1,7 +1,7 @@
 # CENprofiler: Centromeric Satellite & HOR Analysis Pipeline
 
-**Version:** 1.0.0
-**Status:** Development - Modular backbone ready for expansion
+**Version:** 2.0.0
+**Status:** Production Ready - Auto-detection and BAM support
 
 ---
 
@@ -390,7 +390,7 @@ If you use CENprofiler, please cite:
 
 For questions or issues:
 - GitHub Issues: https://github.com/yourusername/CENprofiler/issues
-- Email: your.email@example.com
+- Email: jg2070@cam.ac.uk
 
 ---
 
