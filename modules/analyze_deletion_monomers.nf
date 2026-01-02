@@ -30,7 +30,7 @@ process ANALYZE_DELETION_MONOMERS {
     path "temp_deletions/*", optional: true
 
     when:
-    params.mode == 'reads' && params.analyze_deletions
+    params.alignment != null && params.analyze_deletions  // Run in read mode with alignment
 
     script:
     """
@@ -64,9 +64,11 @@ process ANALYZE_DELETION_MONOMERS {
 
     # Analyze each read's deletions
     analyzed=0
-    while read read_id; do
+    while IFS= read -r read_id; do
         echo "  Processing \$read_id..." >> deletion_analysis.log
 
+        # Run analysis for this read (continue even if it fails)
+        set +e
         python3 ${projectDir}/bin/analyze_deletion_monomers.py \\
             --bam ${bam_file} \\
             --ref-fasta ${reference_genome} \\
@@ -74,13 +76,20 @@ process ANALYZE_DELETION_MONOMERS {
             --ref-monomers ${reference_monomers} \\
             --cluster-file ${family_assignments} \\
             --output "deletion_monomers_\${read_id:0:8}.tsv" \\
-            2>&1 | tee -a deletion_analysis.log || true
+            2>&1 | tee -a deletion_analysis.log
+
+        exit_code=\$?
+        set -e
 
         if [ -f "deletion_monomers_\${read_id:0:8}.tsv" ]; then
             ((analyzed++))
+            echo "    ✓ Analyzed \$read_id" >> deletion_analysis.log
+        else
+            echo "    ✗ No CEN178 monomers found for \$read_id" >> deletion_analysis.log
         fi
     done < top_deletion_reads.txt
 
+    echo "" >> deletion_analysis.log
     echo "Successfully analyzed deletions in \$analyzed reads" >> deletion_analysis.log
 
     # Combine all deletion monomer files if any exist

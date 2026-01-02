@@ -28,7 +28,7 @@ process RIBBON_PLOTS {
     path "ribbon_plots.log", emit: log
 
     when:
-    params.mode == 'reads' && params.generate_ribbon_plots
+    params.alignment != null && params.generate_ribbon_plots  // Run in read mode with alignment
 
     script:
     """

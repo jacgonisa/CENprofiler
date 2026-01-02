@@ -27,7 +27,7 @@ process COMPREHENSIVE_READ_PLOTS {
     path "comprehensive_plots.log", emit: log
 
     when:
-    params.mode == 'reads'
+    params.alignment != null  // Run in read mode with alignment
 
     script:
     """
