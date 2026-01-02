@@ -58,9 +58,7 @@ process DETECT_HORS {
                                              max_pattern_length=${params.max_pattern_length},
                                              min_copies=${params.min_copies},
                                              max_gap=${params.max_gap}):
-        """
-        Find repeating patterns in monomer family sequence with gap checking
-        """
+        # Find repeating patterns in monomer family sequence with gap checking
         if len(family_sequence) < min_pattern_length * min_copies:
             return []
 

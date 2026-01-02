@@ -17,7 +17,8 @@ include { EXTRACT_MONOMERS } from '../modules/extract_monomers'
 include { CLASSIFY_MONOMERS } from '../modules/classify_monomers'
 include { DETECT_HORS } from '../modules/detect_hors'
 include { CHROMOSOME_STATS } from '../modules/chromosome_stats'
-include { GENOME_PLOTS } from '../modules/genome_plots'
+include { SATELLITE_PLOTS } from '../modules/satellite_plots'
+include { HOR_PLOTS } from '../modules/hor_plots'
 
 workflow GENOME_MODE {
     take:
@@ -86,10 +87,18 @@ workflow GENOME_MODE {
     )
 
     //
-    // STEP 7: Generate genome-wide visualizations
+    // STEP 7: Generate satellite/monomer-level visualizations
     //
-    GENOME_PLOTS(
+    SATELLITE_PLOTS(
         CLASSIFY_MONOMERS.out.classifications,
+        DETECT_HORS.out.hors,
+        CHROMOSOME_STATS.out.stats
+    )
+
+    //
+    // STEP 8: Generate HOR-specific visualizations
+    //
+    HOR_PLOTS(
         DETECT_HORS.out.hors,
         DETECT_HORS.out.large_duplications,
         CHROMOSOME_STATS.out.stats
@@ -102,5 +111,6 @@ workflow GENOME_MODE {
     hors              = DETECT_HORS.out.hors
     large_duplications = DETECT_HORS.out.large_duplications
     chromosome_stats  = CHROMOSOME_STATS.out.stats
-    plots             = GENOME_PLOTS.out.plots
+    satellite_plots   = SATELLITE_PLOTS.out.plots
+    hor_plots         = HOR_PLOTS.out.plots
 }

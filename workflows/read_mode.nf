@@ -71,11 +71,14 @@ workflow READ_MODE {
     //
     // STEP 5: Analyze indels and structural variants (optional)
     //
+    indel_stats_ch = Channel.empty()
+
     if (params.analyze_indels) {
         ANALYZE_INDELS(
             CLASSIFY_MONOMERS.out.classifications,
             EXTRACT_MONOMERS.out.monomer_info
         )
+        indel_stats_ch = ANALYZE_INDELS.out.indel_stats
     }
 
     //
@@ -84,13 +87,13 @@ workflow READ_MODE {
     READ_PLOTS(
         CLASSIFY_MONOMERS.out.classifications,
         EXTRACT_MONOMERS.out.monomer_info,
-        params.analyze_indels ? ANALYZE_INDELS.out.indel_stats : Channel.empty()
+        indel_stats_ch.ifEmpty(file("NO_FILE"))
     )
 
     emit:
     fastan_bed        = TANBED.out.bed
     monomer_fasta     = EXTRACT_MONOMERS.out.monomers_fasta
     classifications   = CLASSIFY_MONOMERS.out.classifications
-    indel_stats       = params.analyze_indels ? ANALYZE_INDELS.out.indel_stats : Channel.empty()
+    indel_stats       = indel_stats_ch
     plots             = READ_PLOTS.out.plots
 }
