@@ -7,6 +7,9 @@ work/
 # Test data and results
 test_data/*
 !test_data/results_test/
+!test_data/results_comprehensive/
+test_data/results_comprehensive/*
+!test_data/results_comprehensive/COMPREHENSIVE_TEST_SUMMARY.md
 results/
 
 # Python
