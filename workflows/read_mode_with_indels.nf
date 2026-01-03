@@ -135,7 +135,8 @@ workflow READ_MODE_WITH_INDELS {
         bam_index,
         EXTRACT_READS_FROM_BAM.out.indel_catalog,
         CLASSIFY_MONOMERS.out.classifications,
-        EXTRACT_MONOMERS.out.monomer_info
+        EXTRACT_MONOMERS.out.monomer_info,
+        ANALYZE_DELETION_MONOMERS.out.deletion_monomers
     )
 
     emit:

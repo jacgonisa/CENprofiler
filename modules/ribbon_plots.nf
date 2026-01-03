@@ -22,6 +22,7 @@ process RIBBON_PLOTS {
     path indel_catalog
     path monomer_classifications
     path monomer_info
+    path deletion_monomers
 
     output:
     path "ribbon_*.png", emit: plots, optional: true
@@ -39,11 +40,39 @@ process RIBBON_PLOTS {
     echo "BAM: ${bam_file}" >> ribbon_plots.log
     echo "Indel catalog: ${indel_catalog}" >> ribbon_plots.log
     echo "Monomers: ${monomer_classifications}" >> ribbon_plots.log
+    echo "Deletion monomers: ${deletion_monomers}" >> ribbon_plots.log
 
-    # Prepare monomer data with read_id column
+    # Prepare monomer data with read_id column for READ monomers
     python3 ${projectDir}/bin/prepare_monomer_data_for_viz.py \\
         ${monomer_classifications} \\
-        monomers_with_readid.tsv
+        read_monomers_with_readid.tsv
+
+    # Combine read monomers with deletion monomers (if they exist)
+    if ls ${deletion_monomers}/*.tsv 1> /dev/null 2>&1; then
+        # Get header from read monomers
+        head -1 read_monomers_with_readid.tsv > monomers_with_readid.tsv
+
+        # Add all read monomers (skip header)
+        tail -n +2 read_monomers_with_readid.tsv >> monomers_with_readid.tsv
+
+        # Add deletion monomers with read_id extracted from monomer_id
+        # Deletion monomer IDs format: readid_del0_Chr3:start-end_array0_mon0
+        for del_file in ${deletion_monomers}/*.tsv; do
+            tail -n +2 "\$del_file" | awk -F'\t' 'BEGIN {OFS="\t"} {
+                # Extract read_id from monomer_id (first field before _del)
+                split(\$1, arr, "_del");
+                read_id = arr[1];
+                # Add read_id as new last column
+                print \$0, read_id;
+            }'
+        done >> monomers_with_readid.tsv
+
+        n_del_monomers=\$(tail -n +2 monomers_with_readid.tsv | grep "_del[0-9]*_" | wc -l)
+        echo "Incorporated \$n_del_monomers deletion monomers from reference" >> ribbon_plots.log
+    else
+        echo "No deletion monomers found - using read monomers only" >> ribbon_plots.log
+        mv read_monomers_with_readid.tsv monomers_with_readid.tsv
+    fi
 
     # Find top reads with most large indels
     awk -F'\t' 'NR>1 && \$6>=100 {count[\$1]++} END {for (id in count) print count[id], id}' \\

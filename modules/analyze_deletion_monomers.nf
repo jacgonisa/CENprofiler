@@ -63,12 +63,13 @@ process ANALYZE_DELETION_MONOMERS {
     echo "Analyzing top \$n_analyze reads with most deletions" >> deletion_analysis.log
 
     # Analyze each read's deletions
+    # Disable exit-on-error for the entire loop to ensure all reads are processed
+    set +e
     analyzed=0
     while IFS= read -r read_id; do
         echo "  Processing \$read_id..." >> deletion_analysis.log
 
-        # Run analysis for this read (continue even if it fails)
-        set +e
+        # Run analysis for this read
         python3 ${projectDir}/bin/analyze_deletion_monomers.py \\
             --bam ${bam_file} \\
             --ref-fasta ${reference_genome} \\
@@ -78,16 +79,14 @@ process ANALYZE_DELETION_MONOMERS {
             --output "deletion_monomers_\${read_id:0:8}.tsv" \\
             2>&1 | tee -a deletion_analysis.log
 
-        exit_code=\$?
-        set -e
-
         if [ -f "deletion_monomers_\${read_id:0:8}.tsv" ]; then
-            ((analyzed++))
+            analyzed=\$((analyzed + 1))
             echo "    ✓ Analyzed \$read_id" >> deletion_analysis.log
         else
             echo "    ✗ No CEN178 monomers found for \$read_id" >> deletion_analysis.log
         fi
     done < top_deletion_reads.txt
+    set -e
 
     echo "" >> deletion_analysis.log
     echo "Successfully analyzed deletions in \$analyzed reads" >> deletion_analysis.log
