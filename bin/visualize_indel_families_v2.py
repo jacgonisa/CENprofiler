@@ -79,7 +79,6 @@ def plot_indel_families_with_all_monomers(bam_file, sv_info_file, monomers_file,
     deletion_monomers = None
     if deletion_monomers_file and Path(deletion_monomers_file).exists():
         deletion_monomers = pd.read_csv(deletion_monomers_file, sep='\t')
-        print(f"  Loaded {len(deletion_monomers)} deletion monomers")
 
     # Filter for this read
     read_svs = sv_info[sv_info['read_id'] == read_id]
@@ -185,7 +184,16 @@ def plot_indel_families_with_all_monomers(bam_file, sv_info_file, monomers_file,
 
     # Draw deletion monomers on REFERENCE track (from deletion analysis)
     if deletion_monomers is not None:
-        for _, del_mon in deletion_monomers.iterrows():
+        # Filter deletion monomers for this read
+        # Deletion monomer IDs format: readid_del#_Chr#:start-end_array0_mon0
+        read_deletion_monomers = deletion_monomers[
+            deletion_monomers['monomer_id'].str.startswith(read_id + '_del')
+        ]
+
+        if len(read_deletion_monomers) > 0:
+            print(f"  Loaded {len(read_deletion_monomers)} deletion monomers")
+
+        for _, del_mon in read_deletion_monomers.iterrows():
             # Parse the seq_id to get deletion coordinates
             # Format: readid_del#_Chr#:start-end
             seq_id = del_mon['seq_id']
@@ -338,6 +346,8 @@ def main():
                        help='Specific read IDs to plot (space-separated)')
     parser.add_argument('--output-dir', default='CEN178profiler/results_v2_test',
                        help='Output directory')
+    parser.add_argument('--deletion-monomers', default=None,
+                       help='Combined deletion monomers TSV file (optional)')
 
     args = parser.parse_args()
 
@@ -348,9 +358,8 @@ def main():
     # Plot each read
     for i, read_id in enumerate(args.read_ids, 1):
         output_file = output_dir / f'indel_families_{i}_{read_id[:8]}.png'
-        deletion_monomers_file = output_dir / f'deletion_monomers_{read_id[:8]}.tsv'
         print(f"\n[{i}/{len(args.read_ids)}] Processing {read_id}...")
-        plot_indel_families_with_all_monomers(args.bam, args.sv_info, args.monomers, read_id, output_file, deletion_monomers_file)
+        plot_indel_families_with_all_monomers(args.bam, args.sv_info, args.monomers, read_id, output_file, args.deletion_monomers)
 
     print(f"\n✅ Created {len(args.read_ids)} indel family plots in {output_dir}")
 

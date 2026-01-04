@@ -45,33 +45,25 @@ process RIBBON_PLOTS {
     # Prepare monomer data with read_id column for READ monomers
     python3 ${projectDir}/bin/prepare_monomer_data_for_viz.py \\
         ${monomer_classifications} \\
-        read_monomers_with_readid.tsv
+        monomers_with_readid.tsv
 
-    # Combine read monomers with deletion monomers (if they exist)
-    if ls ${deletion_monomers}/*.tsv 1> /dev/null 2>&1; then
-        # Get header from read monomers
-        head -1 read_monomers_with_readid.tsv > monomers_with_readid.tsv
+    # Combine deletion monomers into a single file (if they exist)
+    # Files are staged directly in work directory as deletion_monomers_*.tsv
+    deletion_file=""
+    if ls deletion_monomers_*.tsv 1> /dev/null 2>&1; then
+        # Get header from first deletion file
+        head -1 \$(ls deletion_monomers_*.tsv | head -1) > all_deletion_monomers.tsv
 
-        # Add all read monomers (skip header)
-        tail -n +2 read_monomers_with_readid.tsv >> monomers_with_readid.tsv
+        # Add all deletion monomers (skip headers)
+        for del_file in deletion_monomers_*.tsv; do
+            tail -n +2 "\$del_file"
+        done >> all_deletion_monomers.tsv
 
-        # Add deletion monomers with read_id extracted from monomer_id
-        # Deletion monomer IDs format: readid_del0_Chr3:start-end_array0_mon0
-        for del_file in ${deletion_monomers}/*.tsv; do
-            tail -n +2 "\$del_file" | awk -F'\t' 'BEGIN {OFS="\t"} {
-                # Extract read_id from monomer_id (first field before _del)
-                split(\$1, arr, "_del");
-                read_id = arr[1];
-                # Add read_id as new last column
-                print \$0, read_id;
-            }'
-        done >> monomers_with_readid.tsv
-
-        n_del_monomers=\$(tail -n +2 monomers_with_readid.tsv | grep "_del[0-9]*_" | wc -l)
-        echo "Incorporated \$n_del_monomers deletion monomers from reference" >> ribbon_plots.log
+        n_del_monomers=\$(tail -n +2 all_deletion_monomers.tsv | wc -l)
+        echo "Combined \$n_del_monomers deletion monomers from reference genome" >> ribbon_plots.log
+        deletion_file="all_deletion_monomers.tsv"
     else
-        echo "No deletion monomers found - using read monomers only" >> ribbon_plots.log
-        mv read_monomers_with_readid.tsv monomers_with_readid.tsv
+        echo "No deletion monomers found - ribbon plots will show read monomers only" >> ribbon_plots.log
     fi
 
     # Find top reads with most large indels
@@ -93,13 +85,19 @@ process RIBBON_PLOTS {
     read_ids=\$(tr '\\n' ' ' < selected_reads.txt)
     echo "Generating ribbon plots for: \$read_ids" >> ribbon_plots.log
 
-    python3 ${projectDir}/bin/visualize_indel_families_v2.py \\
+    # Build command with optional deletion monomers
+    cmd="python3 ${projectDir}/bin/visualize_indel_families_v2.py \\
         --bam ${bam_file} \\
         --sv-info ${indel_catalog} \\
         --monomers monomers_with_readid.tsv \\
         --read-ids \$read_ids \\
-        --output-dir . \\
-        2>&1 | tee -a ribbon_plots.log || true
+        --output-dir ."
+
+    if [ -n "\$deletion_file" ]; then
+        cmd="\$cmd --deletion-monomers \$deletion_file"
+    fi
+
+    eval "\$cmd" 2>&1 | tee -a ribbon_plots.log || true
 
     # Rename outputs to match expected pattern
     for f in indel_families_*.png; do
