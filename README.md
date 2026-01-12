@@ -31,6 +31,22 @@ CENprofiler is a Nextflow pipeline for comprehensive analysis of centromeric sat
 
 ---
 
+## Documentation
+
+📖 **[Complete Monomer-Level Analysis Guide](MONOMER_ANALYSIS_GUIDE.md)** - Comprehensive documentation covering:
+- All automated and manual analyses
+- Statistical interpretation guide
+- Workflows for different use cases
+- Troubleshooting and advanced tips
+
+📋 **Other Guides:**
+- [QUICK_START.md](QUICK_START.md) - Get started quickly
+- [PIPELINE_SUMMARY.md](PIPELINE_SUMMARY.md) - Technical overview
+- [VISUALIZATION_GUIDE.md](VISUALIZATION_GUIDE.md) - Plot descriptions
+- [PRODUCTION_RUN_PLAN.md](PRODUCTION_RUN_PLAN.md) - Production workflow
+
+---
+
 ## Quick Start
 
 ### Prerequisites
@@ -39,7 +55,8 @@ CENprofiler is a Nextflow pipeline for comprehensive analysis of centromeric sat
 - **FasTAN** (installed at `/home/jg2070/bin/FasTAN`)
 - **tanbed** (from alntools, at `/home/jg2070/alntools/tanbed`)
 - **minimap2**
-- **Python 3** with pandas, BioPython
+- **Python 3** with pandas, BioPython, scipy, matplotlib, seaborn
+- **MUSCLE** (optional, for consensus sequences)
 
 ### Installation
 
@@ -107,23 +124,41 @@ genome.fasta
 [7] Generate Plots
 ```
 
-### Read Mode
+### Read Mode with BAM (Comprehensive Analysis)
 
 ```
-reads.fasta
+BAM alignment + Reference Genome
     ↓
-[1] FasTAN (tandem repeat detection)
+[1] Load genomic regions (centromeres, rDNA)
     ↓
-[2] tanbed (convert to BED)
+[2] Extract reads with large indels (≥100bp)
     ↓
-[3] Extract Monomers per Read
+[3] FasTAN (tandem repeat detection)
     ↓
-[4] Classify Monomers (minimap2 + family assignment)
+[4] Extract Monomers per Read
     ↓
-[5] Analyze Indels (optional)
+[5] Classify Monomers (minimap2 + family assignment)
     ↓
-[6] Generate Plots
+[6] Generate Basic Plots
+    ↓
+[7] Generate Comprehensive Plots (transitions, arrays)
+    ↓
+[8] Analyze Deletion Monomers (reference sequences)
+    ↓
+[9] Generate Ribbon Plots (satellite remodelling)
+    ↓
+[10] ⭐ NEW: Monomer Statistics (composition, transitions, heterogeneity)
+    ↓
+[11] ⭐ NEW: Sequence Extraction (per-family FASTAs, consensus)
 ```
+
+**New Monomer-Level Analyses:**
+- Comprehensive statistics with 6+ plots
+- Family transition matrices
+- Array heterogeneity metrics (Shannon/Simpson)
+- Per-family sequence extraction
+- Within-family diversity analysis
+- Consensus sequence generation
 
 ---
 
@@ -177,34 +212,81 @@ reads.fasta
 
 ## Output Structure
 
+### Read Mode with BAM (Complete)
+
 ```
 results/
+├── 00_regions/
+│   └── genomic_regions.tsv          # Centromere/rDNA annotations
+├── 01_extracted_reads/
+│   ├── sample_reads.fa              # Reads with large indels
+│   ├── sample_indel_catalog.tsv     # All indels ≥100bp
+│   └── sample_stats.txt
 ├── 01_fastan/
-│   ├── *.1aln              # FasTAN alignment output
-│   ├── *.bed               # Tandem arrays in BED format
-│   └── fastan.log
+│   ├── *.1aln                       # FasTAN alignment output
+│   └── *.bed                        # Tandem arrays in BED format
 ├── 02_monomers/
-│   ├── monomers.fa         # Extracted monomer sequences
-│   ├── monomer_info.tsv    # Monomer positions and metadata
-│   ├── monomer_classifications.tsv  # Main output!
-│   └── classification.log
-├── 03_hors/  (genome mode)
-│   ├── hors_detected.tsv   # All detected HORs
-│   ├── large_duplications.tsv
-│   └── hor_detection.log
-├── 04_stats/  (genome mode)
-│   ├── chromosome_stats.tsv
-│   ├── family_by_chromosome.tsv
-│   └── hor_by_chromosome.tsv
-├── 04_indels/  (read mode)
-│   ├── indel_stats.tsv
-│   └── deletion_monomers.tsv
+│   ├── monomers.fa                  # Extracted monomer sequences
+│   ├── monomer_info.tsv             # Monomer positions
+│   ├── monomer_classifications.tsv  # ⭐ Main classification output
+│   └── monomers.paf                 # Alignment details
+├── 03_deletion_monomers/
+│   ├── deletion_monomers_*.tsv      # Per-read deletion analysis
+│   ├── all_deletion_monomers.tsv    # Combined deletions
+│   └── deletion_analysis.log
 ├── 05_plots/
-│   └── plots/
+│   ├── reads/                       # Basic plots
+│   │   ├── family_distribution.png
+│   │   ├── indel_distribution.png
+│   │   └── read_statistics.png
+│   ├── comprehensive/               # Advanced plots
+│   │   ├── family_summary.png       # ⭐ With transition heatmap
+│   │   ├── top_arrays_combined.png
+│   │   ├── array_*.png              # Top 5 arrays
+│   │   └── ARRAY_SUMMARY.txt
+│   └── ribbon_plots/                # Satellite remodelling
+│       ├── ribbon_*.png             # Top 5 reads
+│       └── ribbon_plots.log
+├── 07_monomer_statistics/           # ⭐ NEW: Comprehensive stats
+│   ├── length_distribution.png
+│   ├── identity_distribution.png
+│   ├── family_composition.png
+│   ├── transition_matrix.png
+│   ├── heterogeneity_metrics.png
+│   ├── array_size_vs_diversity.png
+│   ├── monomer_statistics.txt       # Detailed report
+│   ├── monomer_statistics.json      # Machine-readable
+│   ├── family_statistics.tsv
+│   └── array_heterogeneity.tsv
+├── 08_monomer_sequences/            # ⭐ NEW: Sequence organization
+│   ├── family_fastas/
+│   │   └── family_*.fa              # One per family
+│   ├── consensus/
+│   │   └── all_consensus.fa         # Consensus sequences
+│   ├── family_diversity.tsv
+│   ├── family_diversity_report.txt
+│   └── sequence_summary.txt
 └── pipeline_info/
     ├── execution_timeline.html
     ├── execution_report.html
     └── execution_trace.txt
+```
+
+### Genome Mode
+
+```
+results/
+├── 01_fastan/
+├── 02_monomers/
+├── 03_hors/                         # HOR detection
+│   ├── hors_detected.tsv
+│   ├── large_duplications.tsv
+│   └── hor_detection.log
+├── 04_stats/                        # Chromosome statistics
+│   ├── chromosome_stats.tsv
+│   ├── family_by_chromosome.tsv
+│   └── hor_by_chromosome.tsv
+└── 05_plots/
 ```
 
 ---
@@ -376,6 +458,70 @@ Check:
 
 ---
 
+## Manual Analysis Scripts ⭐ NEW
+
+Additional analyses can be run manually on classification outputs:
+
+### 1. Compare Two Samples
+
+Statistical comparison of family composition, transitions, and heterogeneity:
+
+```bash
+python bin/compare_samples.py \\
+    results_sample1/02_monomers/monomer_classifications.tsv \\
+    results_sample2/02_monomers/monomer_classifications.tsv \\
+    "Sample1" \\
+    "Sample2" \\
+    comparison_output/
+```
+
+**Outputs:**
+- Chi-square test for composition differences
+- t-tests for heterogeneity metrics
+- Side-by-side visualizations
+- Statistical significance reports
+
+### 2. Spatial/Positional Analysis
+
+Analyze family spatial organization and clustering:
+
+```bash
+python bin/analyze_monomer_positions.py \\
+    results/02_monomers/monomer_classifications.tsv \\
+    position_output/
+```
+
+**Analyzes:**
+- Positional preferences (start/center/end)
+- Boundary enrichment
+- Clustering tendency
+- Family co-occurrence patterns
+
+### 3. Re-run Statistics
+
+Regenerate statistics with custom parameters:
+
+```bash
+python bin/analyze_monomer_statistics.py \\
+    results/02_monomers/monomer_classifications.tsv \\
+    custom_stats/
+```
+
+### 4. Extract Sequences
+
+Organize sequences by family for custom analyses:
+
+```bash
+python bin/extract_monomer_sequences.py \\
+    results/02_monomers/monomer_classifications.tsv \\
+    results/02_monomers/monomers.fa \\
+    sequences_output/
+```
+
+**See [MONOMER_ANALYSIS_GUIDE.md](MONOMER_ANALYSIS_GUIDE.md) for detailed usage and interpretation.**
+
+---
+
 ## Citation
 
 If you use CENprofiler, please cite:
@@ -400,5 +546,12 @@ MIT License (or specify your preferred license)
 
 ---
 
-**CENprofiler** - Comprehensive Centromeric Satellite Analysis
-Version 1.0.0 | Development Version
+**CENprofiler v2.0** - Comprehensive Monomer-Level Centromeric Satellite Analysis
+
+✨ **New in v2.0:**
+- Integrated monomer statistics and diversity metrics
+- Comprehensive sample comparison tools
+- Spatial organization analysis
+- Per-family sequence extraction
+- Automated consensus generation
+- Publication-quality visualizations
