@@ -193,37 +193,46 @@ def plot_indel_families_with_all_monomers(bam_file, sv_info_file, monomers_file,
         if len(read_deletion_monomers) > 0:
             print(f"  Loaded {len(read_deletion_monomers)} deletion monomers")
 
+        n_drawn = 0
         for _, del_mon in read_deletion_monomers.iterrows():
             # Parse the seq_id to get deletion coordinates
             # Format: readid_del#_Chr#:start-end
             seq_id = del_mon['seq_id']
             if '_del' in seq_id and ':' in seq_id:
-                coord_part = seq_id.split('_del')[1].split('_')[1]  # Get "Chr3:14727812-14729948"
-                chrom, pos_range = coord_part.split(':')
-                del_ref_start, del_ref_end = map(int, pos_range.split('-'))
+                try:
+                    coord_part = seq_id.split('_del')[1].split('_')[1]  # Get "Chr3:14727812-14729948"
+                    chrom, pos_range = coord_part.split(':')
+                    del_ref_start, del_ref_end = map(int, pos_range.split('-'))
 
-                # Get monomer position within deletion
-                mon_offset = del_mon['monomer_start']
-                mon_length = del_mon['monomer_end'] - del_mon['monomer_start']
+                    # Get monomer position within deletion
+                    mon_offset = del_mon['monomer_start']
+                    mon_length = del_mon['monomer_end'] - del_mon['monomer_start']
 
-                # Calculate absolute reference position
-                abs_ref_start = del_ref_start + mon_offset
-                abs_ref_pos = abs_ref_start - ref_start  # Normalize to plot coordinates
+                    # Calculate absolute reference position
+                    abs_ref_start = del_ref_start + mon_offset
+                    abs_ref_pos = abs_ref_start - ref_start  # Normalize to plot coordinates
 
-                # Get family if available
-                family = del_mon.get('monomer_family')
+                    # Get family if available
+                    family = del_mon.get('monomer_family')
 
-                if not pd.isna(family):
-                    color = FAMILY_COLORS.get(int(family), 'gray')
-                else:
-                    # Unclassified deletion monomer
-                    color = '#FFCCCC'  # Light pink to distinguish from read monomers
+                    if not pd.isna(family):
+                        color = FAMILY_COLORS.get(int(family), 'gray')
+                    else:
+                        # Unclassified deletion monomer
+                        color = '#FFCCCC'  # Light pink to distinguish from read monomers
 
-                # Draw monomer on reference track (solid, not transparent)
-                ax.add_patch(Rectangle((abs_ref_pos, y_ref - track_height/2),
-                                       mon_length, track_height,
-                                       facecolor=color, edgecolor='darkred',
-                                       linewidth=0.8, alpha=1.0, zorder=4))
+                    # Draw monomer on reference track (solid, not transparent)
+                    ax.add_patch(Rectangle((abs_ref_pos, y_ref - track_height/2),
+                                           mon_length, track_height,
+                                           facecolor=color, edgecolor='darkred',
+                                           linewidth=0.8, alpha=1.0, zorder=4))
+                    n_drawn += 1
+                    print(f"    Drew deletion monomer at plot pos {abs_ref_pos}, length {mon_length}, family {family}, color {color}")
+                except Exception as e:
+                    print(f"    ERROR drawing deletion monomer: {e}")
+
+        if n_drawn > 0:
+            print(f"  Drew {n_drawn} deletion monomers on Reference track")
 
     # Now overlay indels on top (only those >= 100bp)
     MIN_SV_SIZE = 100
