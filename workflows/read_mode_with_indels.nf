@@ -20,6 +20,8 @@ include { READ_PLOTS } from '../modules/read_plots'
 include { COMPREHENSIVE_READ_PLOTS } from '../modules/comprehensive_read_plots'
 include { ANALYZE_DELETION_MONOMERS } from '../modules/analyze_deletion_monomers'
 include { RIBBON_PLOTS } from '../modules/ribbon_plots'
+include { MONOMER_STATISTICS } from '../modules/monomer_statistics'
+include { EXTRACT_MONOMER_SEQUENCES } from '../modules/monomer_sequences'
 
 workflow READ_MODE_WITH_INDELS {
     take:
@@ -139,6 +141,21 @@ workflow READ_MODE_WITH_INDELS {
         ANALYZE_DELETION_MONOMERS.out.deletion_monomers
     )
 
+    //
+    // STEP 11: Comprehensive monomer-level statistics
+    //
+    MONOMER_STATISTICS(
+        CLASSIFY_MONOMERS.out.classifications
+    )
+
+    //
+    // STEP 12: Extract and analyze monomer sequences by family
+    //
+    EXTRACT_MONOMER_SEQUENCES(
+        CLASSIFY_MONOMERS.out.classifications,
+        EXTRACT_MONOMERS.out.monomers_fasta
+    )
+
     emit:
     regions               = LOAD_GENOMIC_REGIONS.out.regions
     reads_fasta           = EXTRACT_READS_FROM_BAM.out.reads_fasta
@@ -151,4 +168,6 @@ workflow READ_MODE_WITH_INDELS {
     comprehensive_plots   = COMPREHENSIVE_READ_PLOTS.out.family_summary
     deletion_monomers     = ANALYZE_DELETION_MONOMERS.out.deletion_monomers
     ribbon_plots          = RIBBON_PLOTS.out.plots
+    monomer_stats         = MONOMER_STATISTICS.out.report
+    family_sequences      = EXTRACT_MONOMER_SEQUENCES.out.family_fastas
 }
