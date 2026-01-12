@@ -6,7 +6,9 @@
     - Extracts reads with large indels (≥ min_indel_size)
     - Detects tandem satellite arrays (FasTAN)
     - Classifies monomers by family
-    - Analyzes indel-family relationships    - Generates visualizations
+    - Analyzes indel-family relationships
+    - Detects Higher-Order Repeats (HORs) with quality metrics
+    - Generates comprehensive visualizations
 ========================================================================================
 */
 
@@ -22,6 +24,7 @@ include { ANALYZE_DELETION_MONOMERS } from '../modules/analyze_deletion_monomers
 include { RIBBON_PLOTS } from '../modules/ribbon_plots'
 include { MONOMER_STATISTICS } from '../modules/monomer_statistics'
 include { EXTRACT_MONOMER_SEQUENCES } from '../modules/monomer_sequences'
+include { DETECT_HORS_REFINED as DETECT_HORS } from '../modules/detect_hors_refined'
 
 workflow READ_MODE_WITH_INDELS {
     take:
@@ -156,6 +159,14 @@ workflow READ_MODE_WITH_INDELS {
         EXTRACT_MONOMERS.out.monomers_fasta
     )
 
+    //
+    // STEP 13: Detect Higher-Order Repeats (HORs) with quality metrics
+    //
+    DETECT_HORS(
+        CLASSIFY_MONOMERS.out.classifications,
+        EXTRACT_MONOMERS.out.monomer_info
+    )
+
     emit:
     regions               = LOAD_GENOMIC_REGIONS.out.regions
     reads_fasta           = EXTRACT_READS_FROM_BAM.out.reads_fasta
@@ -170,4 +181,6 @@ workflow READ_MODE_WITH_INDELS {
     ribbon_plots          = RIBBON_PLOTS.out.plots
     monomer_stats         = MONOMER_STATISTICS.out.report
     family_sequences      = EXTRACT_MONOMER_SEQUENCES.out.family_fastas
+    hors                  = DETECT_HORS.out.hors
+    large_duplications    = DETECT_HORS.out.large_duplications
 }

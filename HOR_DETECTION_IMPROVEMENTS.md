@@ -299,35 +299,37 @@ No HORs detected (filtered by quality)
 
 ## Integration Plan
 
-### Immediate (Current Status):
+### Completed:
 - ✅ Refined algorithm implemented
 - ✅ Test cases pass
-- ⏳ Performance testing ongoing
+- ✅ Integrated into genome mode workflow
+- ✅ Integrated into read mode workflow
+- ✅ Configuration parameters added
+- ✅ Documentation complete
 
-### Next Steps:
+### Integration Details:
 
-1. **Replace in Genome Mode:**
-   - Update `bin/analyze_genome_hors.py` to use refined version
-   - Add quality columns to output
-   - Keep old version as backup
+1. **Genome Mode:** ✅ COMPLETE
+   - Module: `modules/detect_hors_refined.nf`
+   - Workflow: `workflows/genome_mode.nf` (line 18)
+   - Output: `03_hors/hors_detected.tsv`
 
-2. **Add to Read Mode:**
-   - Create module `modules/detect_hors_read_mode.nf`
-   - Add as optional step in `workflows/read_mode_with_indels.nf`
-   - Allow users to enable with `--detect_hors true`
+2. **Read Mode:** ✅ COMPLETE
+   - Module: Same module used (`modules/detect_hors_refined.nf`)
+   - Workflow: `workflows/read_mode_with_indels.nf` (Step 13)
+   - Output: `03_hors/hors_detected.tsv`
 
-3. **Configuration:**
-   - Add parameters to `nextflow.config`:
+3. **Configuration:** ✅ COMPLETE
+   - Parameters added to `nextflow.config`:
      ```groovy
-     params.hor_min_purity = 0.9
-     params.hor_min_score = 50
-     params.hor_max_gap = 500
+     hor_min_purity = 0.9   // Minimum HOR purity score (0-1)
+     hor_min_score  = 50    // Minimum HOR quality score (0-100)
      ```
 
-4. **Documentation:**
-   - Add HOR detection guide
-   - Explain quality metrics
-   - Provide interpretation examples
+4. **Documentation:** ✅ COMPLETE
+   - HOR detection improvements documented
+   - Quality metrics explained
+   - Usage examples provided
 
 ---
 
