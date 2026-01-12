@@ -1,0 +1,240 @@
+{
+  "basic_statistics": {
+    "total_monomers": 13236,
+    "classified_monomers": 8879.0,
+    "unclassified_monomers": 4357.0,
+    "classification_rate": 67.08220006044122,
+    "mean_length": 177.0932305832578,
+    "median_length": 178.0,
+    "std_length": 3.0703494872041204,
+    "min_length": 160.0,
+    "max_length": 189.0,
+    "mean_identity": 5630.28189231229,
+    "median_identity": 4700.0,
+    "std_identity": 5434.154427288986,
+    "min_identity": 120.0,
+    "max_identity": 18500.0,
+    "total_arrays": 418,
+    "mean_monomers_per_array": 31.66507177033493,
+    "median_monomers_per_array": 5.0,
+    "total_reads": 54,
+    "mean_arrays_per_read": 7.7407407407407405
+  },
+  "family_statistics": [
+    {
+      "family": 1,
+      "count": 3574,
+      "percentage": 40.25228066223674,
+      "mean_length": 177.87157246782317,
+      "std_length": 1.160991566266172,
+      "mean_identity": 5549.589318696646,
+      "std_identity": 5626.451475774951,
+      "arrays_present": 167,
+      "reads_present": 52
+    },
+    {
+      "family": 7,
+      "count": 2453,
+      "percentage": 27.626985020835683,
+      "mean_length": 177.94496534855278,
+      "std_length": 0.9591089704257555,
+      "mean_identity": 5228.087642604926,
+      "std_identity": 5268.936908242145,
+      "arrays_present": 132,
+      "reads_present": 50
+    },
+    {
+      "family": 11,
+      "count": 651,
+      "percentage": 7.33190674625521,
+      "mean_length": 177.9600614439324,
+      "std_length": 0.9710910577143016,
+      "mean_identity": 5373.318854718724,
+      "std_identity": 5302.8206784382255,
+      "arrays_present": 64,
+      "reads_present": 37
+    },
+    {
+      "family": 2,
+      "count": 491,
+      "percentage": 5.529902015992792,
+      "mean_length": 177.61507128309572,
+      "std_length": 1.8262532585312765,
+      "mean_identity": 7603.063789116921,
+      "std_identity": 4569.013664799588,
+      "arrays_present": 98,
+      "reads_present": 46
+    },
+    {
+      "family": 13,
+      "count": 344,
+      "percentage": 3.8743101700641964,
+      "mean_length": 177.73546511627907,
+      "std_length": 1.3965047221591536,
+      "mean_identity": 2825.529487813376,
+      "std_identity": 4352.096222102093,
+      "arrays_present": 62,
+      "reads_present": 39
+    },
+    {
+      "family": 9,
+      "count": 324,
+      "percentage": 3.6490595787813938,
+      "mean_length": 177.87345679012347,
+      "std_length": 0.9762056582970685,
+      "mean_identity": 3895.8291466494074,
+      "std_identity": 5352.024480517373,
+      "arrays_present": 51,
+      "reads_present": 27
+    },
+    {
+      "family": 18,
+      "count": 166,
+      "percentage": 1.8695799076472577,
+      "mean_length": 177.80722891566265,
+      "std_length": 1.1383968666804682,
+      "mean_identity": 7276.841742752945,
+      "std_identity": 5264.802038347631,
+      "arrays_present": 61,
+      "reads_present": 39
+    },
+    {
+      "family": 4,
+      "count": 150,
+      "percentage": 1.6893794346210158,
+      "mean_length": 177.50666666666666,
+      "std_length": 2.342334826295922,
+      "mean_identity": 7490.217197572075,
+      "std_identity": 5164.891638815138,
+      "arrays_present": 62,
+      "reads_present": 37
+    },
+    {
+      "family": 6,
+      "count": 140,
+      "percentage": 1.576754138979615,
+      "mean_length": 177.68571428571428,
+      "std_length": 1.5224257163043962,
+      "mean_identity": 9683.089169758812,
+      "std_identity": 5668.413416516636,
+      "arrays_present": 47,
+      "reads_present": 31
+    },
+    {
+      "family": 12,
+      "count": 91,
+      "percentage": 1.0248901903367496,
+      "mean_length": 177.97802197802199,
+      "std_length": 0.5573353663842899,
+      "mean_identity": 7772.46630814506,
+      "std_identity": 5828.960458064233,
+      "arrays_present": 33,
+      "reads_present": 27
+    },
+    {
+      "family": 8,
+      "count": 89,
+      "percentage": 1.0023651312084694,
+      "mean_length": 177.43820224719101,
+      "std_length": 2.425972420680825,
+      "mean_identity": 8139.408347588163,
+      "std_identity": 4667.079698972897,
+      "arrays_present": 58,
+      "reads_present": 40
+    },
+    {
+      "family": 5,
+      "count": 80,
+      "percentage": 0.9010023651312085,
+      "mean_length": 176.7375,
+      "std_length": 3.370549104496593,
+      "mean_identity": 8512.354427299997,
+      "std_identity": 5190.340094173683,
+      "arrays_present": 51,
+      "reads_present": 31
+    },
+    {
+      "family": 16,
+      "count": 70,
+      "percentage": 0.7883770694898075,
+      "mean_length": 177.45714285714286,
+      "std_length": 2.9126695473979787,
+      "mean_identity": 6770.463924963925,
+      "std_identity": 3801.317478438996,
+      "arrays_present": 37,
+      "reads_present": 30
+    },
+    {
+      "family": 10,
+      "count": 67,
+      "percentage": 0.7545894807973871,
+      "mean_length": 177.8507462686567,
+      "std_length": 1.4796982835708548,
+      "mean_identity": 6332.973768979049,
+      "std_identity": 4556.600834824663,
+      "arrays_present": 32,
+      "reads_present": 25
+    },
+    {
+      "family": 19,
+      "count": 62,
+      "percentage": 0.6982768329766866,
+      "mean_length": 177.74193548387098,
+      "std_length": 1.898536829806072,
+      "mean_identity": 6469.198435972629,
+      "std_identity": 4644.783186648656,
+      "arrays_present": 28,
+      "reads_present": 24
+    },
+    {
+      "family": 3,
+      "count": 50,
+      "percentage": 0.5631264782070053,
+      "mean_length": 178.0,
+      "std_length": 0.0,
+      "mean_identity": 5343.860317460317,
+      "std_identity": 2366.759010199407,
+      "arrays_present": 24,
+      "reads_present": 19
+    },
+    {
+      "family": 14,
+      "count": 29,
+      "percentage": 0.3266133573600631,
+      "mean_length": 177.72413793103448,
+      "std_length": 1.3335385720528332,
+      "mean_identity": 7287.577996715927,
+      "std_identity": 4588.390418891107,
+      "arrays_present": 19,
+      "reads_present": 15
+    },
+    {
+      "family": 20,
+      "count": 26,
+      "percentage": 0.29282576866764276,
+      "mean_length": 177.8846153846154,
+      "std_length": 0.5883484054145519,
+      "mean_identity": 6434.8785122923055,
+      "std_identity": 5418.150807513862,
+      "arrays_present": 14,
+      "reads_present": 12
+    },
+    {
+      "family": 17,
+      "count": 22,
+      "percentage": 0.24777565041108232,
+      "mean_length": 177.95454545454547,
+      "std_length": 0.4857270179130824,
+      "mean_identity": 5554.248366013072,
+      "std_identity": 2149.6574893698817,
+      "arrays_present": 14,
+      "reads_present": 13
+    }
+  ],
+  "heterogeneity_summary": {
+    "mean_families_per_array": 4.523605150214593,
+    "mean_dominant_fraction": 0.6284629092421317,
+    "mean_shannon_entropy": 0.8550907116606843,
+    "mean_run_length": 1.2530878679925395
+  }
+}

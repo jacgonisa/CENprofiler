@@ -10,6 +10,7 @@ test_data/*
 !test_data/results_comprehensive/
 test_data/results_comprehensive/*
 !test_data/results_comprehensive/COMPREHENSIVE_TEST_SUMMARY.md
+!test_data/results_comprehensive/06_monomer_stats/
 results/
 
 # Python
