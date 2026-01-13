@@ -1,177 +1,249 @@
 #!/usr/bin/env python3
 """
-Overview visualization of all 6 large 3F3 duplications in Chr4
+Overview visualization of large HOR duplications
+
+Creates a 3-panel figure showing:
+1. Bar chart of duplication sizes by rank
+2. Genomic distribution track along chromosome
+3. Statistics table with key findings
+
+Usage:
+    python plot_large_duplications_overview.py <hors_file> <output_file> [--min-size-kb KB]
+
+Arguments:
+    hors_file: TSV file with HOR detections (must have: seq_id, hor_start, hor_end, hor_unit, etc.)
+    output_file: Output PNG file path
+    --min-size-kb: Minimum HOR size in kb to be considered "large" (default: 40)
 """
 
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
+import sys
+import argparse
+from pathlib import Path
 
-# Load data
-hors = pd.read_csv('reference_genome_hors_MONOMER_LEVEL.tsv', sep='\t')
-hors['chromosome'] = hors['read_id'].str.extract(r'(Chr\d+)')[0]
-hors['hor_length_kb'] = (hors['hor_end'] - hors['hor_start']) / 1000
+def plot_large_duplications_overview(hors_file, output_file, min_size_kb=40):
+    """
+    Create comprehensive overview of large HOR duplications
+    """
 
-# Get large duplications
-large_hors = hors[hors['hor_length_kb'] >= 40].copy()
-large_hors = large_hors.sort_values('hor_length_kb', ascending=False)
+    print("=" * 70)
+    print("LARGE DUPLICATION OVERVIEW")
+    print("=" * 70)
 
-print(f"Creating overview of {len(large_hors)} large duplications")
+    # Load HORs
+    print(f"\nLoading HORs from: {hors_file}")
+    hors = pd.read_csv(hors_file, sep='\t')
 
-# Create figure
-fig = plt.figure(figsize=(20, 12))
-gs = fig.add_gridspec(3, 2, hspace=0.4, wspace=0.3)
+    # Calculate lengths
+    hors['hor_length_kb'] = (hors['hor_end'] - hors['hor_start']) / 1000
 
-# Plot 1: Bar chart of sizes
-ax1 = fig.add_subplot(gs[0, :])
-x_pos = np.arange(len(large_hors))
-colors = plt.cm.Greens(np.linspace(0.4, 0.9, len(large_hors)))
+    # Get large duplications
+    large_hors = hors[hors['hor_length_kb'] >= min_size_kb].copy()
+    large_hors = large_hors.sort_values('hor_length_kb', ascending=False)
 
-bars = ax1.bar(x_pos, large_hors['hor_length_kb'].values, color=colors, edgecolor='darkgreen', linewidth=2)
+    print(f"\nFound {len(large_hors)} large duplications (≥{min_size_kb} kb)")
 
-ax1.set_xlabel('Duplication Rank', fontweight='bold', fontsize=12)
-ax1.set_ylabel('Size (kb)', fontweight='bold', fontsize=12)
-ax1.set_title('Large 3F3 Duplications in Chr4 (≥40 kb)\nAll detected by Monomer-Level Algorithm',
-             fontweight='bold', fontsize=14)
-ax1.set_xticks(x_pos)
-ax1.set_xticklabels([f'#{i+1}' for i in range(len(large_hors))])
+    if len(large_hors) == 0:
+        print("No large duplications found. Exiting.")
+        return
 
-# Add value labels
-for i, (bar, size) in enumerate(zip(bars, large_hors['hor_length_kb'].values)):
-    ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 10,
-            f'{size:.1f} kb',
-            ha='center', va='bottom', fontweight='bold', fontsize=10)
+    # Extract chromosome info
+    large_hors['chromosome'] = large_hors['seq_id'].str.extract(r'(Chr\d+)')[0]
 
-# Plot 2: Genomic positions on Chr4
-ax2 = fig.add_subplot(gs[1, :])
+    # Determine dominant chromosome
+    chrom_counts = large_hors['chromosome'].value_counts()
+    dominant_chrom = chrom_counts.index[0] if len(chrom_counts) > 0 else "Chr4"
 
-chr4_length = hors[hors['chromosome'] == 'Chr4']['array_end'].max()
+    # Filter for dominant chromosome for genomic track
+    chrom_large = large_hors[large_hors['chromosome'] == dominant_chrom].copy()
 
-# Draw chromosome backbone
-ax2.add_patch(mpatches.Rectangle((0, 0.4), chr4_length / 1000, 0.2,
-                                 facecolor='lightgray', edgecolor='black', linewidth=2))
+    print(f"Dominant chromosome: {dominant_chrom} ({len(chrom_large)} duplications)")
 
-# Plot each large HOR
-for i, (_, hor) in enumerate(large_hors.iterrows()):
-    y_offset = 0.7 + (i % 2) * 0.15  # Alternate heights to avoid overlap
+    # Create figure with 3 panels
+    fig = plt.figure(figsize=(16, 12))
+    gs = fig.add_gridspec(3, 2, height_ratios=[2, 1.5, 2], width_ratios=[3, 1])
 
-    # Draw HOR box
+    # Panel 1: Bar chart of sizes
+    ax1 = fig.add_subplot(gs[0, :])
+    ranks = np.arange(1, len(large_hors) + 1)
+    colors = plt.cm.Greens_r(np.linspace(0.3, 0.8, len(large_hors)))
+
+    bars = ax1.bar(ranks, large_hors['hor_length_kb'], color=colors, edgecolor='black', linewidth=1.5)
+
+    # Add size labels on top of bars
+    for rank, size in zip(ranks, large_hors['hor_length_kb']):
+        ax1.text(rank, size + 5, f'{size:.1f} kb', ha='center', va='bottom', fontweight='bold', fontsize=9)
+
+    ax1.set_xlabel('Duplication Rank', fontweight='bold', fontsize=12)
+    ax1.set_ylabel('Size (kb)', fontweight='bold', fontsize=12)
+    ax1.set_title(f'Large HOR Duplications in {dominant_chrom} (≥{min_size_kb} kb)\n' +
+                 'All detected by Monomer-Level Algorithm', fontweight='bold', fontsize=13)
+    ax1.set_xticks(ranks)
+    ax1.set_xticklabels([f'#{r}' for r in ranks])
+    ax1.grid(axis='y', alpha=0.3)
+    ax1.spines['top'].set_visible(False)
+    ax1.spines['right'].set_visible(False)
+
+    # Panel 2: Genomic distribution track
+    ax2 = fig.add_subplot(gs[1, :])
+
+    # Get chromosome extent
+    if len(chrom_large) > 0:
+        chrom_start = chrom_large['hor_start'].min()
+        chrom_end = chrom_large['hor_end'].max()
+        padding = (chrom_end - chrom_start) * 0.1
+        plot_start = max(0, chrom_start - padding)
+        plot_end = chrom_end + padding
+    else:
+        plot_start, plot_end = 0, 3000000  # Default 3Mb
+
+    # Draw chromosome backbone
     ax2.add_patch(mpatches.Rectangle(
-        (hor['hor_start'] / 1000, y_offset),
-        (hor['hor_end'] - hor['hor_start']) / 1000,
-        0.1,
-        facecolor=colors[i],
-        edgecolor='darkgreen',
+        (plot_start / 1000, 0.25),
+        (plot_end - plot_start) / 1000,
+        0.5,
+        facecolor='lightgray',
+        edgecolor='black',
         linewidth=2
     ))
 
-    # Add label
-    mid = (hor['hor_start'] + hor['hor_end']) / 2 / 1000
-    ax2.text(mid, y_offset + 0.15, f'#{i+1}\n{hor["hor_length_kb"]:.1f} kb',
-            ha='center', va='bottom', fontsize=8, fontweight='bold')
+    # Plot each large duplication
+    for idx, (_, hor) in enumerate(chrom_large.iterrows(), 1):
+        color = plt.cm.Greens_r(0.3 + 0.5 * (idx-1) / max(1, len(chrom_large)-1))
 
-ax2.set_xlim(0, chr4_length / 1000)
-ax2.set_ylim(0, 1.5)
-ax2.set_xlabel('Chr4 Position (kb)', fontweight='bold', fontsize=12)
-ax2.set_title('Genomic Distribution Along Chr4', fontweight='bold', fontsize=13)
-ax2.set_yticks([])
-ax2.spines['top'].set_visible(False)
-ax2.spines['right'].set_visible(False)
-ax2.spines['left'].set_visible(False)
+        # Draw HOR as colored box
+        ax2.add_patch(mpatches.Rectangle(
+            (hor['hor_start'] / 1000, 0.25),
+            (hor['hor_end'] - hor['hor_start']) / 1000,
+            0.5,
+            facecolor=color,
+            edgecolor='darkgreen',
+            linewidth=2
+        ))
 
-# Plot 3: Statistics table
-ax3 = fig.add_subplot(gs[2, 0])
-ax3.axis('off')
+        # Add label above
+        mid = (hor['hor_start'] + hor['hor_end']) / 2 / 1000
+        ax2.text(mid, 0.85, f'#{idx}\n{hor["hor_length_kb"]:.1f} kb',
+                ha='center', va='bottom', fontsize=8, fontweight='bold')
 
-table_data = []
-for i, (_, hor) in enumerate(large_hors.iterrows()):
-    table_data.append([
-        f'#{i+1}',
-        f'{hor["hor_unit"]}',
-        f'{int(hor["hor_copies"])}',
-        f'{int(hor["total_monomers"])}',
-        f'{hor["hor_length_kb"]:.1f}'
-    ])
+    ax2.set_xlim(plot_start / 1000, plot_end / 1000)
+    ax2.set_ylim(0, 1)
+    ax2.set_xlabel(f'{dominant_chrom} Position (kb)', fontweight='bold', fontsize=12)
+    ax2.set_title('Genomic Distribution Along ' + dominant_chrom, fontweight='bold', fontsize=13)
+    ax2.set_yticks([])
+    ax2.spines['top'].set_visible(False)
+    ax2.spines['right'].set_visible(False)
+    ax2.spines['left'].set_visible(False)
 
-table = ax3.table(cellText=table_data,
-                 colLabels=['Rank', 'Pattern', 'Copies', 'Monomers', 'Size (kb)'],
-                 cellLoc='center',
-                 loc='center',
-                 bbox=[0, 0, 1, 1])
+    # Panel 3: Statistics table (left)
+    ax3 = fig.add_subplot(gs[2, 0])
+    ax3.axis('off')
 
-table.auto_set_font_size(False)
-table.set_fontsize(10)
-table.scale(1, 2)
+    # Create table data
+    table_data = []
+    table_data.append(['Rank', 'Pattern', 'Copies', 'Monomers', 'Size (kb)'])
 
-# Style header
-for i in range(5):
-    table[(0, i)].set_facecolor('#2ecc71')
-    table[(0, i)].set_text_props(weight='bold', color='white')
+    for idx, (_, hor) in enumerate(large_hors.iterrows(), 1):
+        table_data.append([
+            f'#{idx}',
+            hor['hor_unit'],
+            f"{int(hor['hor_copies'])}",
+            f"{int(hor['total_monomers'])}",
+            f"{hor['hor_length_kb']:.1f}"
+        ])
 
-# Style rows
-for i in range(1, len(table_data) + 1):
+    # Create table
+    table = ax3.table(cellText=table_data, cellLoc='center',
+                     bbox=[0, 0, 1, 1], edges='horizontal')
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+
+    # Style header row
     for j in range(5):
-        if i % 2 == 0:
-            table[(i, j)].set_facecolor('#f0f0f0')
+        cell = table[(0, j)]
+        cell.set_facecolor('#2ecc71')
+        cell.set_text_props(weight='bold', color='white')
 
-ax3.set_title('Detailed Statistics', fontweight='bold', fontsize=13)
+    # Alternate row colors
+    for i in range(1, len(table_data)):
+        for j in range(5):
+            cell = table[(i, j)]
+            if i % 2 == 0:
+                cell.set_facecolor('#f0f0f0')
 
-# Plot 4: Comparison text
-ax4 = fig.add_subplot(gs[2, 1])
-ax4.axis('off')
+    ax3.set_title('Detailed Statistics', fontweight='bold', fontsize=13, pad=10)
 
-comparison_text = """
-KEY FINDINGS
+    # Panel 4: Key findings (right)
+    ax4 = fig.add_subplot(gs[2, 1])
+    ax4.axis('off')
 
-All 6 large duplications:
-  ✓ Are in Chr4
-  ✓ Are 3F3 patterns (3-homHORs)
-  ✓ Range from 40-372 kb
-  ✓ Total span: ~840 kb
+    # Calculate statistics
+    total_span_kb = large_hors['hor_length_kb'].sum()
+    patterns = large_hors['hor_unit'].unique()
+    avg_size = large_hors['hor_length_kb'].mean()
+    largest = large_hors.iloc[0]
+
+    findings_text = f"""KEY FINDINGS
+
+All {len(large_hors)} large duplications:
+✓ Found in {dominant_chrom}
+✓ All {patterns[0]} patterns
+✓ Range: {large_hors['hor_length_kb'].min():.1f}-{large_hors['hor_length_kb'].max():.1f} kb
+✓ Total span: ~{total_span_kb:.0f} kb
 
 Largest duplication:
-  Pattern: 3F3
-  Copies: 637
-  Monomers: 1,911
-  Size: 371.5 kb
-
-Why RLE-based missed these:
-  ❌ Saw as 1F3 × 1911 (1 monomer/unit)
-  ❌ Failed monomers_per_unit ≥ 3 criteria
-
-Why Monomer-level found them:
-  ✅ Detected as 3F3 × 637 (3 monomers/unit)
-  ✅ Passed BOTH criteria!
+  Pattern: {largest['hor_unit']}
+  Copies: {int(largest['hor_copies'])}
+  Monomers: {int(largest['total_monomers'])}
+  Size: {largest['hor_length_kb']:.1f} kb
 
 Biological significance:
-  • Recent large-scale duplication
-  • F3 highly specialized (94% in HORs)
-  • Matches Nature 2023 findings
-"""
+• Recent large-scale duplication
+• {patterns[0]} highly specialized
+• Matches findings"""
 
-ax4.text(0.05, 0.95, comparison_text, transform=ax4.transAxes,
-        fontsize=10, verticalalignment='top', family='monospace',
-        bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.7))
+    ax4.text(0.05, 0.95, findings_text, transform=ax4.transAxes,
+            fontsize=10, verticalalignment='top', family='monospace',
+            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5, pad=1))
 
-# Overall title
-fig.suptitle(f'Large-Scale Centromeric Duplications (≥40 kb)\n' +
-            f'{len(large_hors)} Duplications Found | All 3F3 patterns | Chr4 only',
-            fontsize=16, fontweight='bold')
+    # Overall title
+    fig.suptitle(f'Large-Scale Centromeric Duplications (≥{min_size_kb} kb)\n' +
+                f'{len(large_hors)} Duplications Found | All {patterns[0]} patterns | {dominant_chrom} only',
+                fontsize=14, fontweight='bold', y=0.98)
 
-plt.savefig('large_duplications_overview_monomer_level.png', dpi=300, bbox_inches='tight')
-plt.close()
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    plt.savefig(output_file, dpi=300, bbox_inches='tight')
+    plt.close()
 
-print("✅ Saved: large_duplications_overview_monomer_level.png")
+    print(f"\nSaved: {output_file}")
+    print("=" * 70)
 
-# Print summary
-print("\n=== LARGE DUPLICATION SUMMARY ===")
-print(f"Total large duplications: {len(large_hors)}")
-print(f"Total span: {large_hors['hor_length_kb'].sum():.1f} kb")
-print(f"Largest: {large_hors.iloc[0]['hor_length_kb']:.1f} kb")
-print(f"Smallest: {large_hors.iloc[-1]['hor_length_kb']:.1f} kb")
-print(f"Mean: {large_hors['hor_length_kb'].mean():.1f} kb")
-print(f"\nAll are:")
-print(f"  - 3F3 patterns (3-homHORs)")
-print(f"  - Located in Chr4")
-print(f"  - Detected by monomer-level algorithm")
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__,
+                                    formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('hors_file', help='TSV file with HOR detections')
+    parser.add_argument('output_file', help='Output PNG file path')
+    parser.add_argument('--min-size-kb', type=float, default=40,
+                       help='Minimum HOR size in kb to be considered "large" (default: 40)')
+
+    args = parser.parse_args()
+
+    # Validate inputs
+    hors_path = Path(args.hors_file)
+    if not hors_path.exists():
+        print(f"ERROR: HORs file not found: {hors_path}")
+        sys.exit(1)
+
+    plot_large_duplications_overview(
+        hors_file=args.hors_file,
+        output_file=args.output_file,
+        min_size_kb=args.min_size_kb
+    )
+
+
+if __name__ == '__main__':
+    main()
