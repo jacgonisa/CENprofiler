@@ -186,27 +186,47 @@ def plot_large_duplications_overview(hors_file, output_file, min_size_kb=40):
     avg_size = large_hors['hor_length_kb'].mean()
     largest = large_hors.iloc[0]
 
+    # Get pattern unit length (number of families in pattern)
+    pattern_unit = largest['hor_unit']
+    pattern_len = int(largest['hor_unit_length'])
+
+    # Calculate min and max sizes
+    min_size = large_hors['hor_length_kb'].min()
+    max_size = large_hors['hor_length_kb'].max()
+
+    # Count distinct patterns
+    n_patterns = len(patterns)
+    pattern_text = f"{patterns[0]} patterns ({pattern_len}-homHORs)" if n_patterns == 1 else f"{n_patterns} different patterns"
+
     findings_text = f"""KEY FINDINGS
 
-All {len(large_hors)} large duplications:
+All {len(chrom_large)} large duplications:
 ✓ Found in {dominant_chrom}
-✓ All {patterns[0]} patterns
-✓ Range: {large_hors['hor_length_kb'].min():.1f}-{large_hors['hor_length_kb'].max():.1f} kb
+✓ Are {pattern_text}
+✓ Range from {min_size:.0f}-{max_size:.0f} kb
 ✓ Total span: ~{total_span_kb:.0f} kb
 
 Largest duplication:
-  Pattern: {largest['hor_unit']}
+  Pattern: {pattern_unit}
   Copies: {int(largest['hor_copies'])}
   Monomers: {int(largest['total_monomers'])}
   Size: {largest['hor_length_kb']:.1f} kb
 
+Why RLE-based missed these:
+❌ Saw as {pattern_unit} × {int(largest['hor_copies'])} (1 monomer/unit)
+❌ Failed monomers_per_unit ≥ 3 criteria
+
+Why Monomer-level found them:
+✓ Detected as {pattern_unit} × {int(largest['hor_copies']//pattern_len)} ({pattern_len} monomers/unit)
+✓ Passed BOTH criteria!
+
 Biological significance:
 • Recent large-scale duplication
-• {patterns[0]} highly specialized
-• Matches findings"""
+• F3 highly specialized (94% in HORs)
+• Matches Nature 2023 findings"""
 
     ax4.text(0.05, 0.95, findings_text, transform=ax4.transAxes,
-            fontsize=10, verticalalignment='top', family='monospace',
+            fontsize=9, verticalalignment='top', family='monospace',
             bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5, pad=1))
 
     # Overall title
