@@ -31,13 +31,15 @@ EOF
 
 ```bash
 nextflow run main.nf \
-    --mode genome \
+    --mode reads \
     --input my_centromere.fa \
     --reference_monomers assets/Col-CC-V2-CEN178-representative.fasta \
     --family_assignments assets/itol_manual_phylo_clusters.txt \
     --outdir results_my_centromere/ \
     --fastan_threads 4
 ```
+
+**Note:** Use `--mode reads` for individual sequencing reads (HiFi, ONT, etc.), and `--mode genome` for assembled contigs/chromosomes.
 
 **Expected runtime:** 5-15 minutes for a single molecule (1-5 Mb)
 
@@ -110,10 +112,10 @@ This tells you:
 
 ```bash
 # Process wild-type
-nextflow run main.nf --input wildtype.fa --outdir results_wt/
+nextflow run main.nf --mode reads --input wildtype.fa --outdir results_wt/
 
 # Process mutant
-nextflow run main.nf --input mutant.fa --outdir results_mutant/
+nextflow run main.nf --mode reads --input mutant.fa --outdir results_mutant/
 
 # Compare indel patterns
 python bin/compare_indel_patterns.py \
@@ -128,6 +130,7 @@ python bin/compare_indel_patterns.py \
 # Create a batch script
 for replicate in rep1.fa rep2.fa rep3.fa; do
     nextflow run main.nf \
+        --mode reads \
         --input $replicate \
         --outdir results_$(basename $replicate .fa)/
 done
@@ -146,6 +149,16 @@ python bin/visualize_indel_families_v2.py \
     results/04_visualizations/ \
     --filter-family 3
 ```
+
+## Mode Selection Guide
+
+| Data Type | Mode to Use | Example |
+|-----------|-------------|---------|
+| Long-read sequencing (PacBio HiFi) | `--mode reads` | Individual reads from sequencing |
+| ONT (Nanopore) reads | `--mode reads` | Single molecule reads |
+| PCR amplicons (unassembled) | `--mode reads` | Individual amplicons |
+| Assembled contigs | `--mode genome` | Assembled centromeric regions |
+| Reference genome | `--mode genome` | Chromosome-level assembly |
 
 ## Troubleshooting
 

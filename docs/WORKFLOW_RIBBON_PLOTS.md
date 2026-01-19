@@ -61,7 +61,7 @@ Input FASTA (centromeric regions)
 
 ### Execution Command
 
-**For Nextflow pipeline (recommended):**
+**For assembled genome/contigs:**
 
 ```bash
 nextflow run main.nf \
@@ -74,18 +74,20 @@ nextflow run main.nf \
     --minimap2_threads 4
 ```
 
-**For single molecule analysis:**
+**For single molecule reads (HiFi/ONT):**
 
 ```bash
 nextflow run main.nf \
-    --mode genome \
-    --input single_molecule.fa \
+    --mode reads \
+    --input single_molecule_read.fa \
     --reference_monomers assets/Col-CC-V2-CEN178-representative.fasta \
     --family_assignments assets/itol_manual_phylo_clusters.txt \
     --outdir results_single_molecule/ \
     --fastan_threads 4 \
     --minimap2_threads 2
 ```
+
+**Important:** Use `--mode reads` for individual sequencing reads, and `--mode genome` for assembled sequences.
 
 ---
 
@@ -98,9 +100,9 @@ If you have a **single long-read sequencing read** spanning a centromeric region
 #### Step 1: Prepare Your Data
 
 ```bash
-# Create a FASTA file with your single molecule
-cat > single_molecule.fa << 'EOF'
->molecule_1
+# Create a FASTA file with your single molecule read
+cat > single_molecule_read.fa << 'EOF'
+>molecule_1_read
 ACGTACGT...  # Your sequence here
 EOF
 ```
@@ -108,14 +110,16 @@ EOF
 #### Step 2: Run CENprofiler
 
 ```bash
-# Run the pipeline
+# Run the pipeline (use --mode reads for sequencing reads!)
 nextflow run main.nf \
-    --mode genome \
-    --input single_molecule.fa \
+    --mode reads \
+    --input single_molecule_read.fa \
     --reference_monomers assets/Col-CC-V2-CEN178-representative.fasta \
     --family_assignments assets/itol_manual_phylo_clusters.txt \
     --outdir results_molecule1/
 ```
+
+**Note:** Use `--mode reads` for individual sequencing reads, `--mode genome` for assembled sequences.
 
 #### Step 3: Generate Ribbon Plots
 
